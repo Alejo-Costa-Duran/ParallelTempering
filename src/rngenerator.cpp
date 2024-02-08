@@ -17,4 +17,8 @@ namespace rn_gen
     {
         return gsl_rng_uniform_int(rn_mt,2)*2-1;
     }
+    double rand_double()
+    {
+        return gsl_rng_uniform(rn_mt);
+    }
 }

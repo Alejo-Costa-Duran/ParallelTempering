@@ -10,6 +10,7 @@ namespace rn_gen
     void initialize_random_number_generator(int rank);
     int rand_site();
     int rand_spin();
+    double rand_double();
 
 }
 #endif

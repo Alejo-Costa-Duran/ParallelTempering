@@ -32,4 +32,4 @@ obj/main.o: src/main.cpp /usr/lib/x86_64-linux-gnu/openmpi/include/mpi.h \
  /usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx/win_inln.h \
  /usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx/file_inln.h \
  src/./include/rngenerator.h src/./include/worker.h src/./include/model.h \
- src/./include/rngenerator.h
+ src/./include/rngenerator.h src/./include/settings.h

@@ -16,6 +16,7 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     rn_gen::initialize_random_number_generator(world_rank);
     worker wor(world_rank,world_size);
+    wor.sweep();
     // Get the name of the processor
     char processor_name[MPI_MAX_PROCESSOR_NAME];
     int name_len;
@@ -24,8 +25,7 @@ int main(int argc, char** argv) {
     // Print off a hello world message
     std::cout << "Hello world from processor " << processor_name
               << ", rank " << world_rank
-              << " out of " << world_size << " processors. "<<wor.modelo.lattice[9]<<std::endl;
-
+              << " out of " << world_size << " processors. "<<wor.modelo.E <<std::endl;
     // Finalize the MPI environment
     MPI_Finalize();
 }
