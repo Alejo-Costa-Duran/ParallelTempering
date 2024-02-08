@@ -1,6 +1,7 @@
 #include <iostream>
 #include <mpi.h>
 #include "./include/rngenerator.h"
+#include "./include/worker.h"
 
 int main(int argc, char** argv) {
     // Initialize the MPI environment
@@ -9,11 +10,12 @@ int main(int argc, char** argv) {
     // Get the number of processes
     int world_size;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
+    
     // Get the rank of the process
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     rn_gen::initialize_random_number_generator(world_rank);
+    worker wor(world_rank,world_size);
     // Get the name of the processor
     char processor_name[MPI_MAX_PROCESSOR_NAME];
     int name_len;
@@ -22,7 +24,7 @@ int main(int argc, char** argv) {
     // Print off a hello world message
     std::cout << "Hello world from processor " << processor_name
               << ", rank " << world_rank
-              << " out of " << world_size << " processors. "<<rn_gen::rand_spin()<<std::endl;
+              << " out of " << world_size << " processors. "<<wor.modelo.lattice[9]<<std::endl;
 
     // Finalize the MPI environment
     MPI_Finalize();

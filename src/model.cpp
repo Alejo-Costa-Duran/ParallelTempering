@@ -4,6 +4,7 @@ model::model()
 {
     nSpins = 10;
     lattice.resize(nSpins);
+    randomize_lattice();
 }
 
 void model::randomize_lattice()
