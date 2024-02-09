@@ -1,9 +1,10 @@
 #include "include/model.h"
 #include "include/vecinos.h"
 
-
-model::model()
-{
+model::model(){}
+model::model(int rank)
+{   
+    rn_gen::initialize_random_number_generator(rank);
     nSpins = settings::model::nSpins;
     lattice.resize(nSpins);
     randomize_lattice();

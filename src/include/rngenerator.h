@@ -1,5 +1,6 @@
-#ifndef RN_GEN
-#define RN_GEN
+#ifndef RN_GEN_H
+#define RN_GEN_H
+
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 

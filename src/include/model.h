@@ -1,5 +1,5 @@
-#ifndef MODEL
-#define MODEL
+#ifndef MODEL_H
+#define MODEL_H
 #include "rngenerator.h"
 #include <vector>
 #include "settings.h"
@@ -7,8 +7,9 @@
 class model
 {
     public:
-        bool isPeriodic; 
-        model();
+        bool isPeriodic;
+        model(); 
+        model(int rank);
         int nSpins;
         std::vector<int> lattice;
         double E, E_trial;
