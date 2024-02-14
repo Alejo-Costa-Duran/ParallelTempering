@@ -4,7 +4,7 @@
 model::model(){}
 model::model(int rank)
 {   
-    rn_gen::initialize_random_number_generator(rank);
+    rn_gen::initialize_random_number_generator(rank+12);
     nSpins = settings::model::nSpins;
     lattice.resize(nSpins);
     randomize_lattice();
@@ -15,6 +15,9 @@ model::model(int rank)
     }
     set_E();
     set_M();
+    E_trial = 10000;
+    M_trial = 10000;
+    delE = 0;
 }
 
 void model::randomize_lattice()
@@ -34,12 +37,12 @@ void model::acceptMove(int trialSite)
 
 void model::trialMove(int trialSite)
 {
-    double neighSum =0;
-    for(int neighbour : neighboursMatrix[trialSite])
+    int neighSum = 0;
+    for(int vec : neighboursMatrix[trialSite])
     {
-        neighSum += lattice[neighbour];
+        neighSum += lattice[vec];
     }
-    delE = -2*lattice[trialSite]*(neighSum);
+    delE = -2*lattice[trialSite]*neighSum;
     E_trial = E+delE;
     M_trial = M-2*lattice[trialSite];
 }

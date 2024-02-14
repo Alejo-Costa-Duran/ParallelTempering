@@ -9,7 +9,9 @@ namespace settings
         extern double T_step;
         extern int MCS_therm;
         extern int MCS_sample;
+        extern int MCS_swap;
         extern int MCS_total;
+        extern int MCS_decorr;
         extern inline int mod(int x, int y)
         {
         if( x%y < 0)

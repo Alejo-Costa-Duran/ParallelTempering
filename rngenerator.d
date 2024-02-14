@@ -1,1 +1,2 @@
-obj/rngenerator.o: src/rngenerator.cpp src/include/rngenerator.h
+obj/rngenerator.o: src/rngenerator.cpp src/include/rngenerator.h \
+ src/include/settings.h

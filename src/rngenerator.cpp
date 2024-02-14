@@ -1,4 +1,5 @@
 #include "include/rngenerator.h"
+#include "include/settings.h"
 
 namespace rn_gen
 {
@@ -11,7 +12,7 @@ namespace rn_gen
 }
     int rand_site()
     {
-        return gsl_rng_uniform_int(rn_mt,24);
+        return gsl_rng_uniform_int(rn_mt,settings::model::nSpins);
     }
     int rand_spin()
     {

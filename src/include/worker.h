@@ -18,25 +18,25 @@ class worker
         std::vector<double> e_timeseries;
         std::vector<int> magn_timeseries;
         std::vector<double> t_timeseries;
+        std::vector<double> temperatures;
         int T_id;
         double T;
         int worker_dn;
         int worker_up;
         int acceptedSteps;
 
-        std::vector<double> temperatures;
         std::vector<int> T_id_list;
-
+        void cooldown();
         void start_counters();
-        void sweep();
-        void thermalization();
+        void sweep(double temp);
+        void thermalization(double temp);
         void sampling();
         void broadcastDecision(bool shouldSwap);
         void swapConfigurations();
-        model modelo;
-    private:
-        int rank;
         int numWorkers;
+        model modelo;
+        int rank;
+
 };
 
 void swap_workers(worker &work, std::vector<worker> &workers);

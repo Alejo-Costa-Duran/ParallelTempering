@@ -3,6 +3,7 @@
 #include "rngenerator.h"
 #include <vector>
 #include "settings.h"
+#include <iostream>
 
 class model
 {
