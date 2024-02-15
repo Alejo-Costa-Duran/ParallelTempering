@@ -2,7 +2,7 @@
 
 namespace settings
 {
-    double sim::T_min = 1.15;
+    double sim::T_min = 1.85;
     double sim::T_step = 0.1;
     int sim::MCS_sample = 100;
     int sim::MCS_swap = 10;
@@ -12,7 +12,7 @@ namespace settings
 
     bool model::isPeriodic = true;
     double model::field = 0;
-    int model::nClusters = 4;
+    int model::nClusters = 15;
     int model::nSpins = 24*model::nClusters;
 
     int counter::swap_trials = 0;

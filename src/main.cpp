@@ -13,7 +13,7 @@ void swap_workers(worker &work)
     int swap;
     double E_up;
     double P_swap;
-    bool myTurn = settings::sim::mod(work.T_id,2) == settings::sim::mod(settings::counter::swap_trials,2); 
+    bool myTurn = settings::sim::mod(work.T_id,2) == settings::sim::mod(settings::counter::swap_trials,2);
     MPI_Sendrecv(&work.modelo.E, 1, MPI_DOUBLE, work.worker_dn,100,&E_up, 1, MPI_DOUBLE, work.worker_up,100, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
  if(myTurn)
@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
         work.sampling();
     }
     std::cout<<"Proceso "<<world_rank<< " intentó hacer " << counter::swap_trials <<"cambios de temperatura y logró "<<counter::swap_accepts<<"\n";
-    std::ofstream file("../PT-Data/DatosProceso" + std::to_string(world_rank) + ".csv",std::ios::app);
+    std::ofstream file("../PT-Data/DatosProcesoN15" + std::to_string(world_rank) + ".csv",std::ios::app);
     //file<<"Energia\tMagnetizacion\tTemperatura\n";
         for(int idx = 0; idx < work.e_timeseries.size(); idx++)
         {

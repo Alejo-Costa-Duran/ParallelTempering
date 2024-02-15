@@ -4,7 +4,7 @@
 
 # Compiler settings - Can be customized.
 CC = mpicxx
-CXXFLAGS = -std=c++11 -Wall
+CXXFLAGS = -std=c++11 -Wall -O2 -funroll-loops -finline-functions
 LDFLAGS = -lgsl
 
 # Makefile settings - Can be customized.
