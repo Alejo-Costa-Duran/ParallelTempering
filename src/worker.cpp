@@ -7,7 +7,11 @@ worker::worker(int rank, int numWorkers)
 {
     for(int idx=0; idx<numWorkers; idx++)
     {
-        temperatures.push_back(settings::sim::T_min+(idx)*settings::sim::T_step);
+        t_ladder.push_back(settings::sim::T_min*(pow(settings::sim::ratio,1.0*idx/(1-numWorkers))));
+    }
+    for(int idx = 0; idx<numWorkers; idx++)
+    {
+        temperatures.push_back(t_ladder[idx]);
         T_id_list.push_back(idx);
     }
     modelo = model(rank);
@@ -37,8 +41,6 @@ void worker::start_counters() {
     timer::move 				= 0;
     timer::sync 				= 0;
 }
-
-
 
 void worker::cooldown()
 {
@@ -80,7 +82,24 @@ void worker::thermalization(double temp)
 {
     for(int therm_step = 0; therm_step < settings::sim::MCS_therm; therm_step ++)
     {
-        sweep(temp);
+        for(int idx = 0; idx<modelo.nSpins; idx++)
+    {
+        int trialSite = rn_gen::rand_site();
+        modelo.trialMove(trialSite);
+        if(modelo.delE<=0)
+        {   
+            modelo.acceptMove(trialSite);
+        }
+        else
+        {
+            double rn = rn_gen::rand_double();
+            double prob = exp(-modelo.delE/temp);
+            if(rn<prob)
+            {
+                modelo.acceptMove(trialSite);
+            }
+        }
+    }
     }
     thermalized = true;
 }

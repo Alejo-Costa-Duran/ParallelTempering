@@ -151,19 +151,30 @@ int main(int argc, char** argv) {
 
 
     worker work(world_rank,world_size);
+
+    if(world_rank == 0)
+    {
+        std::cout<<"Temperature ladder: ";
+        for(int idx = 0; idx<world_size; idx++)
+        {
+            std::cout<<idx<<": \t"<<work.t_ladder[idx]<<"\n";
+        }
+    }
+
     for(int iteration = 0; iteration<settings::sim::MCS_total; iteration++)
     {
         if(iteration%settings::sim::MCS_swap == 0){swap_workers(work);}
         if(!work.thermalized){work.thermalization(work.T);}
         work.sampling();
     }
-    std::cout<<"Proceso "<<world_rank<< " intentó hacer " << counter::swap_trials <<"cambios de temperatura y logró "<<counter::swap_accepts<<"\n";
+
+    std::cout<<"Proceso "<<world_rank<< " intentó hacer " << counter::swap_trials <<"cambios de temperatura y logró "<<counter::swap_accepts<<"\n"<<"Acceptance ratio"<<1.0*counter::accepts/counter::MCS<<"\n";
     std::ofstream file("../PT-Data/DatosProcesoN15" + std::to_string(world_rank) + ".csv",std::ios::app);
-    //file<<"Energia\tMagnetizacion\tTemperatura\n";
-        for(int idx = 0; idx < work.e_timeseries.size(); idx++)
-        {
-            file<<work.e_timeseries[idx]<<"\t"<<work.magn_timeseries[idx]<<"\t"<<work.t_timeseries[idx]<<"\n";
-        }
+    file<<"Energia\tMagnetizacion\tTemperatura\n";
+    for(int idx = 0; idx < work.e_timeseries.size(); idx++)
+    {
+        file<<work.e_timeseries[idx]<<"\t"<<work.magn_timeseries[idx]<<"\t"<<work.t_timeseries[idx]<<"\n";
+    }
     file.close();
     // Get the name of the processor
 

@@ -18,6 +18,7 @@ class worker
         std::vector<double> e_timeseries;
         std::vector<int> magn_timeseries;
         std::vector<double> t_timeseries;
+        std::vector<double> t_ladder;
         std::vector<double> temperatures;
         int T_id;
         double T;

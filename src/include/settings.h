@@ -6,7 +6,8 @@ namespace settings
     namespace sim 
     {
         extern double T_min;
-        extern double T_step;
+        extern double T_max;
+        extern double ratio;
         extern int MCS_therm;
         extern int MCS_sample;
         extern int MCS_swap;

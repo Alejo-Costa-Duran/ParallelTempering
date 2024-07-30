@@ -13,6 +13,7 @@ model::model(int rank)
     {
         neighboursMatrix = vecinos[settings::model::nClusters-1];
     }
+    field = settings::model::field;
     set_E();
     set_M();
     E_trial = 10000;
@@ -42,7 +43,7 @@ void model::trialMove(int trialSite)
     {
         neighSum += lattice[vec];
     }
-    delE = -2*lattice[trialSite]*neighSum;
+    delE = -2*lattice[trialSite]*neighSum+2*field*lattice[trialSite];
     E_trial = E+delE;
     M_trial = M-2*lattice[trialSite];
 }
