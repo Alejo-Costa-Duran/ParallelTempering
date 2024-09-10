@@ -31,6 +31,8 @@ namespace settings
         extern double field;
         extern int nClusters;
         extern int nSpins;
+        extern int neighIdx;
+        extern int distances;
     }
     namespace counter
     {

@@ -1,11 +1,52 @@
 #include <iostream>
 #include <mpi.h>
+#include "./include/vecinos.h"
 #include "./include/rngenerator.h"
 #include "./include/worker.h"
+#include "./include/settings.h"
 #include "./include/counters.h"
 #include <fstream>
 #include <string>
+#include <queue>
+#include <limits> // For infinity
 
+
+std::vector<int> computeDistanceMatrix(std::vector<int> neighboursMatrix, int nSpins) {
+    std::vector<int> distance_matrix(nSpins*(nSpins+1)/2,std::numeric_limits<int>::max()); // Initialize with large value (infinity)
+
+    // Perform BFS from each spin to calculate distances
+    for (int start = 0; start < nSpins; ++start) {
+        std::queue<std::pair<int, int>> q; // Pair (spin, distance)
+        std::vector<bool> visited(nSpins, false);
+
+        // Start BFS from 'start' spin
+        q.push({start, 0});
+        int idx = start*(start+1)/2+start;
+        distance_matrix[idx] = 0;
+        visited[start] = true;
+
+        while (!q.empty()) {
+            int current = q.front().first;
+            int dist = q.front().second;
+            q.pop();
+
+            // Check all neighbors of the current spin
+            for (int n = 0; n < 7; ++n) {
+                int neighbor = neighboursMatrix[current * 7 + n]; // Get neighbor spin
+                
+                // If neighbor hasn't been visited, update its distance
+                if (!visited[neighbor]) {
+                    visited[neighbor] = true;
+                    int idx =(start > neighbor) ? start * (start + 1) / 2 + neighbor : neighbor * (neighbor + 1) / 2 + start; ;
+                    distance_matrix[idx] = dist + 1;
+                    q.push({neighbor, dist + 1});
+                }
+            }
+        }
+    }
+
+    return distance_matrix;
+}
 
 void swap_workers(worker &work)
 {
@@ -18,8 +59,9 @@ void swap_workers(worker &work)
 
  if(myTurn)
     {
-        double T_up = work.temperatures[settings::sim::mod(work.worker_up,work.world_size)];
+        double T_up = work.temperatures[work.T_id+1];
         P_swap = exp((work.modelo.E-E_up)*(1/work.T-1/T_up));
+
         swap = rn_gen::rand_double() < fmin(1,P_swap) ? 1 : 0;
         if(work.T_id == work.world_size-1){swap = 0;}
         MPI_Send(&swap, 1, MPI_INT, work.worker_up, 110, MPI_COMM_WORLD);
@@ -118,15 +160,11 @@ void swap_workers(worker &work)
                 MPI_Sendrecv_replace(&counter::accepts,1,MPI_INT, work.worker_dn, 1, work.worker_dn, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
     }
-    if(swap == 1)
-    {
-        work.thermalized = false;
-    }
 
     work.worker_dn = world_ID_dn_new;
     work.worker_up = world_ID_up_new;
     
-    MPI_Allgather(&work.T_id,1,MPI_INT,work.T_id_list.data(),1, MPI_INT, MPI_COMM_WORLD);
+    //MPI_Allgather(&work.T_id,1,MPI_INT,work.T_id_list.data(),1, MPI_INT, MPI_COMM_WORLD);
 
     counter::swap_accepts += swap;
     counter::swap_trials++;
@@ -136,50 +174,135 @@ void swap_workers(worker &work)
 int main(int argc, char** argv) {
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
-
     // Get the number of processes
     int world_size;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-    
     // Get the rank of the process
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-    
+    MPI_Comm node_comm;
+    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, world_rank, MPI_INFO_NULL, &node_comm);
+
+    int local_rank, local_size;
+    MPI_Comm_rank(node_comm, &local_rank);
+    MPI_Comm_size(node_comm, &local_size);
+
     char processor_name[MPI_MAX_PROCESSOR_NAME];
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
+    std::cout << "Process " << world_rank << " (local rank " << local_rank
+              << ") is running on node: " << processor_name << std::endl;
 
+    // Define variables for the shared memory window
+    int* shared_neighbours;
+    int* shared_distanceMatrix;
+    MPI_Win win_neighbours, win_distance;
 
-    worker work(world_rank,world_size);
+    std::vector<int> neighbours(settings::model::nSpins*7);
+    std::vector<int> distanceMatrix(settings::model::nSpins*(settings::model::nSpins+1)/2);
+   // Rank 0 in each node will allocate memory for the neighbours and distance matrices
+    int nSpins = settings::model::nSpins;
+    int neighbours_size = nSpins * 7;
+    int distanceMatrix_size = (nSpins * (nSpins + 1)) / 2;
 
-    if(world_rank == 0)
-    {
-        std::cout<<"Temperature ladder: ";
-        for(int idx = 0; idx<world_size; idx++)
-        {
-            std::cout<<idx<<": \t"<<work.t_ladder[idx]<<"\n";
+    // Allocate shared memory window for neighbors matrix
+    if (local_rank == 0) {
+        // Rank 0 on each node allocates memory
+        MPI_Win_allocate_shared(neighbours_size * sizeof(int), sizeof(int), MPI_INFO_NULL,
+                                node_comm, &shared_neighbours, &win_neighbours);
+
+        MPI_Win_allocate_shared(distanceMatrix_size * sizeof(int), sizeof(int), MPI_INFO_NULL,
+                                node_comm, &shared_distanceMatrix, &win_distance);
+
+        // Only rank 0 loads the data
+        std::ifstream file("./src/Vecinos.csv");
+        if (settings::model::neighIdx == 3) {
+            int number;
+            std::string line;
+            int idx = 0;
+            while (std::getline(file, line)) {
+                number = std::stoi(line);
+                shared_neighbours[idx] = number;
+                idx++;
+            }
+        } else {
+            // Assign precomputed neighbour data
+            for (int i = 0; i < neighbours_size; i++) {
+                shared_neighbours[i] = vecinos[settings::model::neighIdx][i];
+            }
         }
+        file.close();
+        
+        // Compute distance matrix
+        std::vector<int> distanceMatrix = computeDistanceMatrix(std::vector<int>(shared_neighbours, shared_neighbours + neighbours_size), nSpins);
+        std::copy(distanceMatrix.begin(), distanceMatrix.end(), shared_distanceMatrix);
+        std::cout << "Rank 0 on node " << processor_name << " initialized the neighbours and distance matrices.\n";
+    } else {
+        // Other ranks on the node attach to the shared memory
+        MPI_Aint size;
+        int disp_unit;
+
+        // Attach to the shared memory window for neighbors matrix
+        MPI_Win_allocate_shared(0, sizeof(int), MPI_INFO_NULL, node_comm, &shared_neighbours, &win_neighbours);
+        MPI_Win_shared_query(win_neighbours, 0, &size, &disp_unit, &shared_neighbours);
+
+        // Attach to the shared memory window for distance matrix
+        MPI_Win_allocate_shared(0, sizeof(int), MPI_INFO_NULL, node_comm, &shared_distanceMatrix, &win_distance);
+        MPI_Win_shared_query(win_distance, 0, &size, &disp_unit, &shared_distanceMatrix);
     }
 
-    for(int iteration = 0; iteration<settings::sim::MCS_total; iteration++)
-    {
-        if(iteration%settings::sim::MCS_swap == 0){swap_workers(work);}
-        if(!work.thermalized){work.thermalization(work.T);}
-        work.sampling();
-    }
+    // Synchronize after data load
+    MPI_Barrier(MPI_COMM_WORLD);
+    worker work(world_rank,world_size, shared_neighbours);
 
-    std::cout<<"Proceso "<<world_rank<< " intentó hacer " << counter::swap_trials <<"cambios de temperatura y logró "<<counter::swap_accepts<<"\n"<<"Acceptance ratio"<<1.0*counter::accepts/counter::MCS<<"\n";
-    std::ofstream file("../PT-Data/DatosProcesoN15" + std::to_string(world_rank) + ".csv",std::ios::app);
-    file<<"Energia\tMagnetizacion\tTemperatura\n";
-    for(int idx = 0; idx < work.e_timeseries.size(); idx++)
+        if(world_rank == 1)
+        {
+            std::cout<<"Temperature ladder: ";
+            for(int idx = 0; idx<world_size; idx++)
+            {
+                std::cout<<idx<<": \t"<<work.t_ladder[idx]<<"\n";
+            }
+        }
+
+        for(int iteration = 0; iteration<settings::sim::MCS_total; iteration++)
+        {
+            
+            if(!work.thermalized){work.thermalization(work.T,shared_neighbours);};
+            if(iteration%settings::sim::MCS_swap == 0){swap_workers(work);}
+            work.sampling(shared_neighbours,shared_distanceMatrix);
+            if(work.world_rank==1){if(iteration%10000 == 0){std::cout<<iteration<<"\n";}}
+        }
+
+    std::cout<<"Proceso "<<world_rank<< " intentó hacer " << counter::swap_trials <<"cambios de temperatura y logró "<<counter::swap_accepts<<"\n";
+    
+    
+    
+    std::string fileName = "../PT-Data/0Field/DatosN"+std::to_string(settings::model::nClusters)+"Proceso"+ std::to_string(world_rank) + ".csv";
+    std::ofstream file(fileName);
+    file<<"Energia\tMagnetizacion\tTemperatura\n";//\tCorr\n";
+    for(int idx = 0; idx < work.energies.size(); idx++)
     {
-        file<<work.e_timeseries[idx]<<"\t"<<work.magn_timeseries[idx]<<"\t"<<work.t_timeseries[idx]<<"\n";
+        file<<work.energies[idx]<<"\t"<<work.magnetizations[idx]<<"\t"<<work.t_timeseries[idx];
+        /*for(int corrIdx = 0; corrIdx<settings::model::distances+1; corrIdx++)
+        {
+            file<<"\t"<<work.corr_timeseries[idx][corrIdx];
+        }*/
+        file<<"\n";
     }
     file.close();
-    // Get the name of the processor
-
-    // Print off a hello world message
-
-    // Finalize the MPI environment
+    
+    if(work.ladderUpdate)
+    {
+    std::string counterName = "../PT-Data/0Field/CountersProceso"+std::to_string(settings::model::nClusters) + std::to_string(world_rank) + ".csv";
+    std::ofstream fileCounters(counterName);
+    fileCounters<<"Accepts\tTotal\tTemperature\n";
+    for(int idx=0; idx<work.accept_timeseries.size(); idx++)
+    {
+        fileCounters<<work.accept_timeseries[idx]<<"\t"<<work.mcs_timeseries[idx]<<"\t"<<work.counters_t[idx]<<"\n";
+    }
+    fileCounters.close();
+    }
+    MPI_Win_free(&win_neighbours);
+    MPI_Win_free(&win_distance);
     MPI_Finalize();
 }

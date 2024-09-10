@@ -5,7 +5,7 @@
 #include <map>
 #include <vector>
 
-extern  std::vector<std::vector<std::vector<int>>> vecinos;
+extern  std::vector<std::vector<int>> vecinos;
 
 // etc.
 
