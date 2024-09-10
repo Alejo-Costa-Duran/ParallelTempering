@@ -255,43 +255,47 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     worker work(world_rank,world_size, shared_neighbours);
 
-        if(world_rank == 1)
-        {
-            std::cout<<"Temperature ladder: ";
-            for(int idx = 0; idx<world_size; idx++)
-            {
-                std::cout<<idx<<": \t"<<work.t_ladder[idx]<<"\n";
-            }
-        }
-
         for(int iteration = 0; iteration<settings::sim::MCS_total; iteration++)
         {
             
             if(!work.thermalized){work.thermalization(work.T,shared_neighbours);};
-            if(iteration%settings::sim::MCS_swap == 0){swap_workers(work);}
-            work.sampling(shared_neighbours,shared_distanceMatrix);
+            if(iteration%settings::sim::MCS_swap == 0){work.swap_workers();}
+            work.sampling(shared_neighbours,shared_distanceMatrix,settings::sim::storeCorrelations,settings::sim::ladderUpdate);
             if(work.world_rank==1){if(iteration%10000 == 0){std::cout<<iteration<<"\n";}}
         }
 
     std::cout<<"Proceso "<<world_rank<< " intentó hacer " << counter::swap_trials <<"cambios de temperatura y logró "<<counter::swap_accepts<<"\n";
-    
-    
-    
+
     std::string fileName = "../PT-Data/0Field/DatosN"+std::to_string(settings::model::nClusters)+"Proceso"+ std::to_string(world_rank) + ".csv";
     std::ofstream file(fileName);
-    file<<"Energia\tMagnetizacion\tTemperatura\n";//\tCorr\n";
+    file<<"Energia\tMagnetizacion\tTemperatura";
+    if(settings::sim::storeCorrelations)
+    {
+        for(int corrIdx = 0; corrIdx < settings::model::distances+1; corrIdx++)
+        {
+            file<<"\tCorr"+std::to_string(corrIdx);
+        }
+        file<<"\n";
+    }
+    else
+    {
+        file<<"\n";
+    }
+
     for(int idx = 0; idx < work.energies.size(); idx++)
     {
         file<<work.energies[idx]<<"\t"<<work.magnetizations[idx]<<"\t"<<work.t_timeseries[idx];
-        /*for(int corrIdx = 0; corrIdx<settings::model::distances+1; corrIdx++)
+        if(settings::sim::storeCorrelations)
         {
-            file<<"\t"<<work.corr_timeseries[idx][corrIdx];
-        }*/
+        for(int corrIdx = 0; corrIdx<settings::model::distances+1; corrIdx++)
+        {
+            file<<"\t"<<work.correlations[idx][corrIdx];
+        }}
         file<<"\n";
     }
     file.close();
     
-    if(work.ladderUpdate)
+    if(settings::sim::ladderUpdate)
     {
     std::string counterName = "../PT-Data/0Field/CountersProceso"+std::to_string(settings::model::nClusters) + std::to_string(world_rank) + ".csv";
     std::ofstream fileCounters(counterName);

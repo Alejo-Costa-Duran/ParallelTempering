@@ -10,6 +10,8 @@ namespace settings
     int sim::MCS_therm = 10000;
     int sim::MCS_total = 100000;
     int sim::MCS_decorr = 10;
+    extern bool storeCorrelations = false;
+    extern bool ladderUpdate = false;
 
     bool model::isPeriodic = true;
     double model::field = 0.0;

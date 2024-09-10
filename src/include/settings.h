@@ -13,6 +13,8 @@ namespace settings
         extern int MCS_swap;
         extern int MCS_total;
         extern int MCS_decorr;
+        extern bool storeCorrelations;
+        extern bool ladderUpdate;
         extern inline int mod(int x, int y)
         {
         if( x%y < 0)
