@@ -41,7 +41,6 @@ class worker
         std::vector<double> t_timeseries;
         std::vector<double> temperatures;
         double T;
-        int acceptedSteps;
 
         void thermalization(double temp, int *shared_neighbours);
         void sampling(int *shared_neighbours,int *shared_distanceMatrix, bool storeCorrelations, bool ladderUpdate);

@@ -4,6 +4,10 @@
 worker::worker(){}
 
 worker::worker(int rank, int numWorkers, int *shared_neighbours)
+:world_rank(rank),
+world_size(numWorkers),
+thermalized(false),
+T_id(rank)
 {
     if (numWorkers <= 0)
     {
@@ -15,8 +19,6 @@ worker::worker(int rank, int numWorkers, int *shared_neighbours)
         throw std::invalid_argument("shared_neighbours cannot be null");
     }
 
-    world_rank = rank;
-    world_size = numWorkers;
     worker_dn = settings::sim::mod(rank - 1, world_size);
     worker_up = settings::sim::mod(rank + 1, world_size);
 
@@ -36,10 +38,7 @@ worker::worker(int rank, int numWorkers, int *shared_neighbours)
     start_counters();
     modelo = model(rank, shared_neighbours);
 
-    acceptedSteps = 0;
     T = temperatures[rank];
-    T_id = rank;
-    thermalized = false;
 
     cooldown(shared_neighbours);
     thermalization(T, shared_neighbours);
@@ -216,7 +215,6 @@ void worker::swap_workers()
     }
     if(myTurn)
     {
-        //Send news dn to world_ID_dn who will be his new neighbor up
         if(swap)
         {
             MPI_Send(&worker_up, 1, MPI_INT, worker_dn, world_rank, MPI_COMM_WORLD);
@@ -229,22 +227,18 @@ void worker::swap_workers()
     else
     {
         MPI_Recv(&world_ID_up_new, 1, MPI_INT, worker_up, worker_up, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            //(**)I know that if I'm swapping the variable above is not actually correct yet.
-            //world_ID_up_new will actually be worker.world_ID_dn
+
     }
 
     if(myTurn)
     {
-        //Receive news from world_ID_up about who will be your new world_ID_up
         MPI_Recv(&world_ID_up_new, 1, MPI_INT, worker_up, worker_up, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
     else
     {
-            //Send news up to world_ID_dn who will be at this position
         if (swap)
         {
             MPI_Send(&world_ID_up_new, 1, MPI_INT, worker_dn, world_rank, MPI_COMM_WORLD);
-                //Now I can correct (**)
             world_ID_up_new = worker_dn;
         }
         else
@@ -252,7 +246,7 @@ void worker::swap_workers()
             MPI_Send(&world_rank,    1, MPI_INT, worker_dn, world_rank, MPI_COMM_WORLD);
         }
     }
-    //Now do the swapping if you got lucky
+    
     if (swap == 1)
     {
         if (myTurn == 1)
@@ -272,8 +266,6 @@ void worker::swap_workers()
     worker_dn = world_ID_dn_new;
     worker_up = world_ID_up_new;
     
-    //MPI_Allgather(&T_id,1,MPI_INT,T_id_list.data(),1, MPI_INT, MPI_COMM_WORLD);
-
     counter::swap_accepts += swap;
     counter::swap_trials++;
 

@@ -6,38 +6,38 @@
 
 model::model(){}
 model::model(int rank,int *shared_neighbours)
+:nSpins(settings::model::nSpins),rank(rank),
+isPeriodic(settings::model::isPeriodic),
+lattice(new int[settings::model::nSpins]),
+delE(0),
+E_trial(10000),
+M_trial(10000)
 {   
     rn_gen::initialize_random_number_generator(rank+12);
-    nSpins = settings::model::nSpins;
-    this->rank = rank;
-    isPeriodic = settings::model::isPeriodic;
-    field = settings::model::field;
-    lattice = new int[settings::model::nSpins];
     randomize_lattice();
     set_E(shared_neighbours);
     set_M();
-    E_trial = 10000;
-    M_trial = 10000;
-    delE = 0;
 }
 
 
 std::vector<double> model::compute_Correlations(int *shared_distanceMatrix)
 {
-    std::vector<double> corrs(settings::model::distances+1,0);
-    std::vector<int> amounts = {192,672,2016,5376,10080,192};
+    std::vector<double> correlations(settings::model::distances+1,0);
+    std::vector<int> counts(settings::model::distances+1,0);
+    counts[0] = nSpins;
     for(int currentSpin = 0; currentSpin<settings::model::nSpins;currentSpin++)
     for(int currentNeigh = currentSpin+1; currentNeigh<settings::model::nSpins; currentNeigh++)
     {
-        int idx = currentNeigh*(currentNeigh+1)/2+currentSpin;
-        int dist = shared_distanceMatrix[idx];
-        corrs[dist] += (1.0*lattice[currentNeigh]*lattice[currentSpin]);
+        int distanceMatrixIdx = currentNeigh*(currentNeigh+1)/2+currentSpin;
+        int distance = shared_distanceMatrix[distanceMatrixIdx];
+        correlations[distance] += lattice[currentNeigh]*lattice[currentSpin];
+        ++counts[distance];
     }
-    for(int corrsIdx = 0; corrsIdx<settings::model::distances+1; corrsIdx++ )
+    for(int correlationsIdx = 0; correlationsIdx<settings::model::distances+1; correlationsIdx++ )
     {
-        corrs[corrsIdx] = corrs[corrsIdx]/amounts[corrsIdx];
+        correlations[correlationsIdx] = correlations[correlationsIdx]/counts[correlationsIdx];
     }
-    return corrs;
+    return correlations;
 }
 
 void model::randomize_lattice()
