@@ -21,7 +21,7 @@ class model
         double E, E_trial;
         int M, M_trial;
         double delE;
-        double field = 0;
+        double field;
 
         void randomize_lattice();
         void trialMove(int trialSite,int *shared_neighbours);

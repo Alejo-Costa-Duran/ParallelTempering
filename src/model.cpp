@@ -6,12 +6,14 @@
 
 model::model(){}
 model::model(int rank,int *shared_neighbours)
-:nSpins(settings::model::nSpins),rank(rank),
-isPeriodic(settings::model::isPeriodic),
+:isPeriodic(settings::model::isPeriodic),
+nSpins(settings::model::nSpins),
+rank(rank),
 lattice(new int[settings::model::nSpins]),
-delE(0),
 E_trial(10000),
-M_trial(10000)
+M_trial(10000),
+delE(0),
+field(settings::model::field)
 {   
     rn_gen::initialize_random_number_generator(rank+12);
     randomize_lattice();
