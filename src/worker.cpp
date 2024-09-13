@@ -39,7 +39,6 @@ T_id(rank)
     modelo = model(rank, shared_neighbours);
 
     T = temperatures[rank];
-
     cooldown(shared_neighbours);
     thermalization(T, shared_neighbours);
 }
@@ -72,6 +71,11 @@ void worker::cooldown(int *shared_neighbours)
     {
         thermalization(highTemp,shared_neighbours);
         highTemp-=0.5;
+    }
+    while(highTemp > T)
+    {
+        thermalization(highTemp,shared_neighbours);
+        highTemp-=0.1;
     }
     thermalized = false;
 }

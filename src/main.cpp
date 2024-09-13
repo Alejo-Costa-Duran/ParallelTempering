@@ -255,13 +255,20 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     worker work(world_rank,world_size, shared_neighbours);
 
+    for(int iteration = 0; iteration<settings::sim::MCS_total; iteration++)
+        {           
+            if(!work.thermalized){work.thermalization(work.T,shared_neighbours);};
+            if(iteration%settings::sim::MCS_swap == 0){work.swap_workers();}
+            if(work.world_rank==1){if(iteration%100000 == 0){std::cout<<"Warmup iteration number: "<<iteration<<"          \n";}}
+        }
+
         for(int iteration = 0; iteration<settings::sim::MCS_total; iteration++)
         {
             
             if(!work.thermalized){work.thermalization(work.T,shared_neighbours);};
             if(iteration%settings::sim::MCS_swap == 0){work.swap_workers();}
             work.sampling(shared_neighbours,shared_distanceMatrix,settings::sim::storeCorrelations,settings::sim::ladderUpdate);
-            if(work.world_rank==1){if(iteration%10000 == 0){std::cout<<iteration<<"\n";}}
+            if(work.world_rank==1){if(iteration%100000 == 0){std::cout<<"Sampling iteration number: "<<iteration<<"        \n";}}
         }
 
     std::cout<<"Proceso "<<world_rank<< " intentó hacer " << counter::swap_trials <<"cambios de temperatura y logró "<<counter::swap_accepts<<"\n";
