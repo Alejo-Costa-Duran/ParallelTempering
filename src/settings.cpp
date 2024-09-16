@@ -10,16 +10,16 @@ namespace settings
     int sim::MCS_therm = 10000;
     int sim::MCS_total = 1000000;
     int sim::MCS_decorr = 10;
-    bool sim::storeCorrelations = true;
+    bool sim::storeCorrelations = false;
     bool sim::ladderUpdate = false;
 
     bool model::isPeriodic = true;
     double model::field = 0.0;
 
-    int model::nClusters = 64;
-    int model::neighIdx = 2;
+    int model::nClusters = 512;
+    int model::neighIdx = 3;
     int model::nSpins = 24*model::nClusters;
-    int model::distances = 9;
+    int model::distances = 13;
     
 
     int counter::swap_trials = 0;

@@ -107,6 +107,7 @@ int main(int argc, char** argv) {
         std::copy(distanceMatrix.begin(), distanceMatrix.end(), shared_distanceMatrix);
         std::cout << "Rank 0 on node " << processor_name << " initialized the neighbours and distance matrices.\n";
         }
+        std::cout << "Rank 0 on node " << processor_name << " initialized the neighbours matrix.\n";
         MPI_Win_fence(0, win_neighbours);
     } else {
         // Other ranks on the node attach to the shared memory
@@ -130,6 +131,7 @@ int main(int argc, char** argv) {
 
     // Synchronize after data load
     MPI_Barrier(MPI_COMM_WORLD);
+    std::cout<<"Rank "<<world_rank<<" on node "<<processor_name<<" has successfully loaded the data.\n";
     worker work(world_rank,world_size, shared_neighbours);
 
     for(int iteration = 0; iteration<settings::sim::MCS_total; iteration++)

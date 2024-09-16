@@ -37,10 +37,12 @@ T_id(rank)
     compute_probabilities();
     start_counters();
     modelo = model(rank, shared_neighbours);
+    std::cout<<"Worker "<<rank<<" created"<<std::endl;
 
     T = temperatures[rank];
     cooldown(shared_neighbours);
     thermalization(T, shared_neighbours);
+    std::cout<<"Worker "<<rank<<" done thermalizing"<<std::endl;
 }
 
 void worker::compute_probabilities()
