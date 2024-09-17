@@ -33,7 +33,7 @@ std::vector<double> model::compute_Correlations(int *shared_distanceMatrix)
         int distanceMatrixIdx = currentNeigh*(currentNeigh+1)/2+currentSpin;
         int distance = shared_distanceMatrix[distanceMatrixIdx];
         correlations[distance] += lattice[currentNeigh]*lattice[currentSpin];
-        ++counts[distance];
+        counts[distance]+=1;
     }
     for(int correlationsIdx = 0; correlationsIdx<settings::model::distances+1; correlationsIdx++ )
     {

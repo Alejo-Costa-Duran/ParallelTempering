@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
 
     std::cout<<"Proceso "<<world_rank<< " intentó hacer " << counter::swap_trials <<"cambios de temperatura y logró "<<counter::swap_accepts<<"\n";
 
-    std::string fileName = "../PT-Data/0Field/DatosN"+std::to_string(settings::model::nClusters)+"Proceso"+ std::to_string(world_rank) + ".csv";
+    std::string fileName = "../PT-Data/05Field/DatosN"+std::to_string(settings::model::nClusters)+"Proceso"+ std::to_string(world_rank) + ".csv";
     std::ofstream file(fileName);
     file<<"Energia\tMagnetizacion\tTemperatura";
     if(settings::sim::storeCorrelations)
@@ -182,7 +182,7 @@ int main(int argc, char** argv) {
     
     if(settings::sim::ladderUpdate)
     {
-    std::string counterName = "../PT-Data/0Field/CountersProceso"+std::to_string(settings::model::nClusters) + std::to_string(world_rank) + ".csv";
+    std::string counterName = "../PT-Data/05Field/CountersProceso"+std::to_string(settings::model::nClusters) + std::to_string(world_rank) + ".csv";
     std::ofstream fileCounters(counterName);
     fileCounters<<"Accepts\tTotal\tTemperature\n";
     for(int idx=0; idx<work.accept_timeseries.size(); idx++)

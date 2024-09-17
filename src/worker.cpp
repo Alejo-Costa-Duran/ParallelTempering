@@ -49,11 +49,14 @@ void worker::compute_probabilities()
 {
     for(int temperature_idx = 0; temperature_idx<world_size; temperature_idx++)
     {
-        std::vector<double> prob_list(15,0);
+        std::vector<double> prob_list(16,0);
         double currentTemperature = temperatures[temperature_idx];
-        for(int neighbourSum = 0; neighbourSum<15; neighbourSum++)
+        for(int neighbourSum = -7; neighbourSum<8; neighbourSum+=2 )
         {
-            prob_list[neighbourSum] = exp(-2.0*(-7+neighbourSum)/currentTemperature);
+            double delE = neighbourSum-modelo.field;
+            int probIdx = int((neighbourSum+7)/2);
+            prob_list[probIdx] = exp(2.0*delE/currentTemperature);
+            prob_list[8+probIdx] = exp(-2.0*delE/currentTemperature);
         } 
         probabilities_list.push_back(prob_list);
     }
@@ -85,6 +88,7 @@ void worker::cooldown(int *shared_neighbours)
 bool worker::performTrialMove(double temp,int trialSite, int *shared_neighbours)
 {
     modelo.trialMove(trialSite,shared_neighbours);
+    int trialSpin = modelo.lattice[trialSite];
     if(modelo.delE<=0)
     {   
         modelo.acceptMove(trialSite);
@@ -93,7 +97,8 @@ bool worker::performTrialMove(double temp,int trialSite, int *shared_neighbours)
     else
     {
         double rn = rn_gen::rand_double();
-        double prob = probabilities_list[T_id][int(modelo.delE/2)+7];
+        int probIdx = (1.0*modelo.delE/(-2.0*trialSpin)+modelo.field+7)/2+(trialSpin+1)*4;
+        double prob = probabilities_list[T_id][probIdx];
         
         if(rn<prob)
         {
