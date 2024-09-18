@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
 
     std::cout<<"Proceso "<<world_rank<< " intentó hacer " << counter::swap_trials <<"cambios de temperatura y logró "<<counter::swap_accepts<<"\n";
 
-    std::string fileName = "../PT-Data/05Field/DatosN"+std::to_string(settings::model::nClusters)+"Proceso"+ std::to_string(world_rank) + ".csv";
+    std::string fileName = "../PT-Data/05Field/DatosTN"+std::to_string(settings::model::nClusters)+"Proceso"+ std::to_string(world_rank) + ".csv";
     std::ofstream file(fileName);
     file<<"Energia\tMagnetizacion\tTemperatura";
     if(settings::sim::storeCorrelations)

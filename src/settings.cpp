@@ -14,7 +14,7 @@ namespace settings
     bool sim::ladderUpdate = true;
 
     bool model::isPeriodic = true;
-    double model::field = 0.5;
+    double model::field = 6.0;
 
     int model::nClusters = 8;
     int model::neighIdx = 1;

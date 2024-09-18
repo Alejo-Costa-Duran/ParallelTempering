@@ -34,13 +34,13 @@ T_id(rank)
         0.01, 0.131375925, 0.2192512725, 0.2897279738, 0.3408229442, 0.3796016988, 0.4089561089, 0.4348109125, 0.459629004, 0.4866419968, 0.5164514458, 0.5499549047, 0.5857143595, 0.6238921119, 0.664056418, 0.7063748626, 0.7508436232, 0.79682986, 0.843975676, 0.8925446972, 0.9432834456, 0.9968726634, 1.05371731, 1.11420416, 1.1788821600000001, 1.248377824, 1.323236132, 1.40397498, 1.49119837, 1.5855957760000001, 1.687754818, 1.797967044, 1.916501189, 2.044449512, 2.184010185, 2.33889142, 2.514784558, 2.7153148959999998, 2.935504338, 3.175375747, 3.451545256, 3.775331019, 4.17206792, 4.627818632, 5.1152590920000005, 5.697152635, 6.525809684, 7.80650979, 9.187644902999999, 10.0
     };
 
-    compute_probabilities();
+    //compute_probabilities();
     start_counters();
     modelo = model(rank, shared_neighbours);
     std::cout<<"Worker "<<rank<<" created"<<std::endl;
 
     T = temperatures[rank];
-    cooldown(shared_neighbours);
+    //cooldown(shared_neighbours);
     thermalization(T, shared_neighbours);
     std::cout<<"Worker "<<rank<<" done thermalizing"<<std::endl;
 }
@@ -55,8 +55,8 @@ void worker::compute_probabilities()
         {
             double delE = neighbourSum-modelo.field;
             int probIdx = int((neighbourSum+7)/2);
-            prob_list[probIdx] = exp(2.0*delE/currentTemperature);
-            prob_list[8+probIdx] = exp(-2.0*delE/currentTemperature);
+            prob_list[probIdx] = exp(-2.0*delE/currentTemperature);
+            prob_list[8+probIdx] = exp(2.0*delE/currentTemperature);
         } 
         probabilities_list.push_back(prob_list);
     }
@@ -88,7 +88,7 @@ void worker::cooldown(int *shared_neighbours)
 bool worker::performTrialMove(double temp,int trialSite, int *shared_neighbours)
 {
     modelo.trialMove(trialSite,shared_neighbours);
-    int trialSpin = modelo.lattice[trialSite];
+    //int trialSpin = modelo.lattice[trialSite];
     if(modelo.delE<=0)
     {   
         modelo.acceptMove(trialSite);
@@ -97,9 +97,9 @@ bool worker::performTrialMove(double temp,int trialSite, int *shared_neighbours)
     else
     {
         double rn = rn_gen::rand_double();
-        int probIdx = (1.0*modelo.delE/(-2.0*trialSpin)+modelo.field+7)/2+(trialSpin+1)*4;
-        double prob = probabilities_list[T_id][probIdx];
-        
+        //int probIdx = (1.0*modelo.delE/(-2.0*trialSpin)+modelo.field+7)/2+(trialSpin+1)*4;
+        double prob = exp(-modelo.delE/temp); //probabilities_list[T_id][probIdx];
+        //std::cout<<prob<<"\t"<<exp(-modelo.delE/temp)<<"\t"<<temp<<"\t"<<temperatures[T_id]<<"\n";
         if(rn<prob)
         {
             modelo.acceptMove(trialSite);
