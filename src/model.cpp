@@ -1,5 +1,4 @@
 #include "include/model.h"
-#include "include/vecinos.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -63,7 +62,10 @@ void model::trialMove(int trialSite,int *shared_neighbours)
     for(int vec = 0; vec<7; vec++)
     {
         int vecino = shared_neighbours[7*trialSite+vec];
+        if(vecino != -1)
+        {
         neighSum += lattice[vecino];
+        }
     }
     delE = -2*lattice[trialSite]*neighSum+2*field*lattice[trialSite];
     E_trial = E+delE;
@@ -90,9 +92,13 @@ double model::compute_E(int *shared_neighbours)
         for(int vec = 0; vec<7; vec++)
         {
             int vecino = shared_neighbours[site*7+vec];
+            if(vecino != -1)
+            {
             currentEnergy += lattice[site]*lattice[vecino];
+            }
         }
     }
+    std::cout<<"Energy on worker"<<rank<<" = "<<currentEnergy<<"\n";
     return currentEnergy/2;
 }
 

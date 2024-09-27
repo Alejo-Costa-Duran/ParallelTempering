@@ -7,17 +7,17 @@ namespace settings
     double sim::ratio = sim::T_min/sim::T_max;
     int sim::MCS_sample = 1;
     int sim::MCS_swap = 1;
-    int sim::MCS_therm = 10000;
+    int sim::MCS_therm = 100000;
     int sim::MCS_total = 1000000;
     int sim::MCS_decorr = 10;
     bool sim::storeCorrelations = false;
     bool sim::ladderUpdate = true;
 
-    bool model::isPeriodic = true;
-    double model::field = 6.0;
+    bool model::isPeriodic = false;
+    double model::field = 0.0;
 
-    int model::nClusters = 8;
-    int model::neighIdx = 1;
+    int model::nClusters = 2;
+    int model::neighIdx = 2;
     int model::nSpins = 24*model::nClusters;
     int model::distances = 5;
     
