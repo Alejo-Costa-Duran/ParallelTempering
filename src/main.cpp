@@ -155,9 +155,9 @@ int main(int argc, char** argv) {
     std::cout<<"Rank "<<world_rank<<" on node "<<processor_name<<" has successfully loaded the data.\n";
     worker work(world_rank,world_size, shared_neighbours);
 
-    for(int iteration = 0; iteration<5*settings::sim::MCS_total; iteration++)
+   for(int iteration = 0; iteration<5*settings::sim::MCS_total; iteration++)
         {           
-            if(!work.thermalized){work.thermalization(work.T,shared_neighbours);};
+            work.sweep(work.T,shared_neighbours,false);
             if(iteration%settings::sim::MCS_swap == 0){work.swap_workers();}
             if(work.world_rank==1){if(iteration%100000 == 0){std::cout<<"Warmup iteration number: "<<iteration<<"          \n";}}
         }
@@ -197,7 +197,7 @@ int main(int argc, char** argv) {
         }
         for(size_t temperature_idx = 0; temperature_idx<world_size; temperature_idx++)
         {
-        std::string fileName = "../PT-Data/Open/DatosN"+std::to_string(settings::model::nClusters)+"Proceso"+ std::to_string(temperature_idx) + ".csv";
+        std::string fileName = "../PT-Data/05Field/DatosN"+std::to_string(settings::model::nClusters)+"Proceso"+ std::to_string(temperature_idx) + ".csv";
         std::ofstream file(fileName);
         file<<"Energia\tMagnetizacion\tTemperatura";
         if(settings::sim::storeCorrelations)
@@ -271,7 +271,7 @@ int main(int argc, char** argv) {
     */
     if(settings::sim::ladderUpdate)
     {
-    std::string counterName = "../PT-Data/Open/CountersProceso"+std::to_string(settings::model::nClusters) + std::to_string(world_rank) + ".csv";
+    std::string counterName = "../PT-Data/=5Field/CountersProceso"+std::to_string(settings::model::nClusters) + std::to_string(world_rank) + ".csv";
     std::ofstream fileCounters(counterName);
     fileCounters<<"Accepts\tTotal\tTemperature\n";
     for(int idx=0; idx<work.accept_timeseries.size(); idx++)

@@ -16,7 +16,6 @@ class worker
         inline void compute_probabilities();
         void cooldown(int *shared_neighbours);
         void start_counters();
-        inline void sweep(double temp,int *shared_neighbours, bool counterFlag); 
         inline bool performTrialMove(double temp,int trialSite, int *shared_neighbours);
         void storeThermodynamicData(bool storeCorrelations, int *distanceMatrix);
         void storeCounters();
@@ -44,6 +43,7 @@ class worker
 
         void thermalization(double temp, int *shared_neighbours);
         void sampling(int *shared_neighbours,int *shared_distanceMatrix, bool storeCorrelations, bool ladderUpdate);
+        void sweep(double temp,int *shared_neighbours, bool counterFlag); 
         void swap_workers();
 };
 #endif
