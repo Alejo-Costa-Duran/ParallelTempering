@@ -27,20 +27,22 @@ T_id(rank)
 
     for (int idx = 0; idx < numWorkers; idx++)
     {
-        temperatures.push_back(settings::sim::T_min * (pow(settings::sim::ratio, 1.0 * idx / (1 - numWorkers)))); // idx*1.0*(settings::sim::T_max-settings::sim::T_min)/(numWorkers-1)+settings::sim::T_min);
+        temperatures.push_back(settings::sim::T_min);
+        //settings::sim::T_min * (pow(settings::sim::ratio, 1.0 * idx / (1 - numWorkers)))); // idx*1.0*(settings::sim::T_max-settings::sim::T_min)/(numWorkers-1)+settings::sim::T_min);
     }
-    temperatures = {0.01, 0.131376, 0.219251, 0.289728, 0.340823, 0.379602, 0.408956, 0.434811, 0.459629, 0.486642, 0.516451, 0.549955, 0.585714, 0.623892, 0.664056, 0.706375, 0.750844, 0.79683, 0.843976, 0.892545, 0.943283, 0.996873, 1.05372, 1.1142, 1.17888, 1.24838, 1.32324, 1.40397, 1.4912, 1.5856, 1.68775, 1.79797, 1.9165, 2.04445, 2.18401, 2.33889, 2.51478, 2.71531, 2.9355, 3.17538, 3.45155, 3.77533, 4.17207, 4.62782, 5.11526, 5.69715, 6.52581, 7.80651, 9.18764, 10.0
-    };
+    /*temperatures = {0.01, 0.131376, 0.219251, 0.289728, 0.340823, 0.379602, 0.408956, 0.434811, 0.459629, 0.486642, 0.516451, 0.549955, 0.585714, 0.623892, 0.664056, 0.706375, 0.750844, 0.79683, 0.843976, 0.892545, 0.943283, 0.996873, 1.05372, 1.1142, 1.17888, 1.24838, 1.32324, 1.40397, 1.4912, 1.5856, 1.68775, 1.79797, 1.9165, 2.04445, 2.18401, 2.33889, 2.51478, 2.71531, 2.9355, 3.17538, 3.45155, 3.77533, 4.17207, 4.62782, 5.11526, 5.69715, 6.52581, 7.80651, 9.18764, 10.0
+    };*/
 
     //compute_probabilities();
     start_counters();
     modelo = model(rank, shared_neighbours);
-    std::cout<<"Worker "<<rank<<" created"<<std::endl;
 
     T = temperatures[rank];
     //cooldown(shared_neighbours);
+    lowestEnergy = modelo.E;
+    lowestMagnetization= modelo.M;
     thermalization(T, shared_neighbours);
-    std::cout<<"Worker "<<rank<<" done thermalizing"<<std::endl;
+
 }
 
 void worker::compute_probabilities()
@@ -70,18 +72,12 @@ void worker::start_counters() {
 
 void worker::cooldown(int *shared_neighbours)
 {
-    double highTemp = 15;
+    double highTemp = 4.0;
     while(highTemp > T)
     {
         thermalization(highTemp,shared_neighbours);
-        highTemp-=0.5;
+        highTemp=highTemp*0.9;
     }
-    while(highTemp > T)
-    {
-        thermalization(highTemp,shared_neighbours);
-        highTemp-=0.1;
-    }
-    thermalized = false;
 }
 
 bool worker::performTrialMove(double temp,int trialSite, int *shared_neighbours)
@@ -115,10 +111,20 @@ void worker::sweep(double temp,int *shared_neighbours,bool counterFlag)
         counter::MCS += 1;
         int trialSite = rn_gen::rand_site();
         bool movedDone = performTrialMove(temp,trialSite,shared_neighbours);
-        if(movedDone && counterFlag)
+        if(modelo.E<lowestEnergy)
         {
-            counter::accepts += 1;
+            lowestEnergy = modelo.E;
+            lowestMagnetization = modelo.M;
         }
+       // if(movedDone && counterFlag)
+        //{
+          //  counter::accepts += 1;
+            //if(modelo.E < lowestEnergy)
+            //{
+              //  lowestEnergy = modelo.E;
+                //lowestMagnetization = modelo.M;
+            //}
+        //}
     }
 }
 

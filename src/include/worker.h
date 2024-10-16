@@ -14,7 +14,7 @@ class worker
         std::vector<std::vector<double>> probabilities_list;
         
         inline void compute_probabilities();
-        void cooldown(int *shared_neighbours);
+        
         void start_counters();
         inline bool performTrialMove(double temp,int trialSite, int *shared_neighbours);
         void storeThermodynamicData(bool storeCorrelations, int *distanceMatrix);
@@ -24,7 +24,9 @@ class worker
         worker();
         worker(int rank, int numWorkers,int *shared_neighbours);
         bool thermalized;
-        
+        double lowestEnergy;
+        int lowestMagnetization;
+        void cooldown(int *shared_neighbours);
         int worker_dn;
         int worker_up;
         int world_rank;                   //Thread number

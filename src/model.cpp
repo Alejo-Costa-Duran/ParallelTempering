@@ -98,7 +98,6 @@ double model::compute_E(int *shared_neighbours)
             }
         }
     }
-    std::cout<<"Energy on worker"<<rank<<" = "<<currentEnergy<<"\n";
     return currentEnergy/2;
 }
 

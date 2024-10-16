@@ -152,29 +152,63 @@ int main(int argc, char** argv) {
 
     // Synchronize after data load
     MPI_Barrier(MPI_COMM_WORLD);
-    std::cout<<"Rank "<<world_rank<<" on node "<<processor_name<<" has successfully loaded the data.\n";
+    //td::cout<<"Rank "<<world_rank<<" on node "<<processor_name<<" has successfully loaded the data.\n";
+
+    std::vector<int> gsMagnetizations;
+    std::vector<double> gsEnergies;
+    std::vector<double> fieldValues;
+    double currentField = 0;
+    while(currentField <7.2)
+    {
+        fieldValues.push_back(currentField);
+        gsMagnetizations.push_back(0);
+        gsEnergies.push_back(0);
+        currentField += 0.075;
+    }
+
+for(int fieldIdx = 0; fieldIdx<fieldValues.size(); fieldIdx++)
+{
+    settings::model::field = fieldValues[fieldIdx];
     worker work(world_rank,world_size, shared_neighbours);
-
-   for(int iteration = 0; iteration<5*settings::sim::MCS_total; iteration++)
+    if(world_rank==1){std::cout<<"Field: "<<work.modelo.field<<"\n";}
+    for(int iteration = 0; iteration<settings::sim::MCS_total; iteration++)
         {           
-            work.sweep(work.T,shared_neighbours,false);
-            if(iteration%settings::sim::MCS_swap == 0){work.swap_workers();}
-            if(work.world_rank==1){if(iteration%100000 == 0){std::cout<<"Warmup iteration number: "<<iteration<<"          \n";}}
-        }
 
+            if(work.world_rank==1){std::cout<<"Warmup iteration number: "<<iteration<<"          \n";}
+            work.modelo.randomize_lattice();
+            work.modelo.set_E(shared_neighbours);
+            work.modelo.set_M();
+            work.cooldown(shared_neighbours);
+            //work.sweep(work.T,shared_neighbours,false);
+            //if(iteration%settings::sim::MCS_swap == 0){work.swap_workers();}
+        }
+    /*
         for(int iteration = 0; iteration<settings::sim::MCS_total; iteration++)
         {
             if(!work.thermalized){work.thermalization(work.T,shared_neighbours);};
             if(iteration%settings::sim::MCS_swap == 0){work.swap_workers();}
             work.sampling(shared_neighbours,shared_distanceMatrix,settings::sim::storeCorrelations,settings::sim::ladderUpdate);
             if(work.world_rank==1){if(iteration%100000 == 0){std::cout<<"Sampling iteration number: "<<iteration<<"        \n";}}
-        }
-
-    std::cout<<"Proceso "<<world_rank<< " intentó hacer " << counter::swap_trials <<"cambios de temperatura y logró "<<counter::swap_accepts<<"\n";
+        }*/
+        std::cout<<"Field: "<<work.modelo.field<<" Rank: "<<world_rank<<" Lowest energy"<<work.lowestEnergy<<" Lowest magnetization: "<<work.lowestMagnetization<<"\n";
+        gsEnergies[fieldIdx] = work.lowestEnergy;
+        gsMagnetizations[fieldIdx] = work.lowestMagnetization;
+}
+    
+    //std::cout<<"Proceso "<<world_rank<< " intentó hacer " << counter::swap_trials <<"cambios de temperatura y logró "<<counter::swap_accepts<<"Menor energía encontrada: "<<work.lowestEnergy<< "con magnetización: "<<work.lowestMagnetization <<"\n";
 
 
     MPI_Barrier(MPI_COMM_WORLD);
+    std::string fileName = "../PT-Data/Plateaus/DatosN"+std::to_string(settings::model::nClusters)+"Proceso"+ std::to_string(world_rank) + ".csv";
+    std::ofstream file(fileName);
+    file<<"Energia\tMagnetizacion\tCampo\n";
+    for(int i = 0; i<gsEnergies.size(); i++)
+    {
+        file<<gsEnergies[i]<<"\t"<<gsMagnetizations[i]<<"\t"<<fieldValues[i]<<"\n";
+    }
+    file.close();
 
+/*
     /// Compute averages
     int global_size = world_size*settings::sim::MCS_total;
     if(world_rank == 0)
@@ -197,7 +231,7 @@ int main(int argc, char** argv) {
         }
         for(size_t temperature_idx = 0; temperature_idx<world_size; temperature_idx++)
         {
-        std::string fileName = "../PT-Data/05Field/DatosN"+std::to_string(settings::model::nClusters)+"Proceso"+ std::to_string(temperature_idx) + ".csv";
+        std::string fileName = "../PT-Data/150Field/DatosN"+std::to_string(settings::model::nClusters)+"Proceso"+ std::to_string(temperature_idx) + ".csv";
         std::ofstream file(fileName);
         file<<"Energia\tMagnetizacion\tTemperatura";
         if(settings::sim::storeCorrelations)
@@ -268,10 +302,10 @@ int main(int argc, char** argv) {
         file<<"\n";
     }
     file.close();
-    */
+    
     if(settings::sim::ladderUpdate)
     {
-    std::string counterName = "../PT-Data/=5Field/CountersProceso"+std::to_string(settings::model::nClusters) + std::to_string(world_rank) + ".csv";
+    std::string counterName = "../PT-Data/150Field/CountersProceso"+std::to_string(settings::model::nClusters) + std::to_string(world_rank) + ".csv";
     std::ofstream fileCounters(counterName);
     fileCounters<<"Accepts\tTotal\tTemperature\n";
     for(int idx=0; idx<work.accept_timeseries.size(); idx++)
@@ -280,7 +314,7 @@ int main(int argc, char** argv) {
     }
     fileCounters.close();
     }
-
+    */
     // Free shared memory
     MPI_Win_free(&win_neighbours);
     if(settings::sim::storeCorrelations)
